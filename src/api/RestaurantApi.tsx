@@ -1,5 +1,5 @@
 import { SearchState } from "@/pages/search-page";
-import { RestaurantSearchResponse } from "@/types";
+import { Restaurant, RestaurantSearchResponse } from "@/types";
 import { useQuery } from "react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -24,6 +24,29 @@ export const useSearchRestaurants = (searchState: SearchState, city?: string) =>
 
   return {
     results,
+    isLoading
+  };
+};
+
+export const useGetRestaurant = (restaurantId?: string) => {
+  const getRestaurantByIdRequest = async (): Promise<Restaurant> => {
+    const response = await fetch(`${API_BASE_URL}/api/restaurant/${restaurantId}`);
+    if (!response.ok) {
+      throw new Error("Failed to get restaurant")
+    }
+
+    return response.json();
+  };
+
+  //We are telling reactQuery to enable this query  if we have restaurantId
+  //This prevent the query to trigger the first time when we don't have an id as the backend 
+  //will give an error so it's a waste of api request
+  const { data: restaurant, isLoading } = useQuery("fetchRestaurant", getRestaurantByIdRequest, {
+    enabled: !!restaurantId
+  });
+
+  return {
+    restaurant,
     isLoading
   };
 };
